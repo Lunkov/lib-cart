@@ -84,7 +84,9 @@ func (c *Cart) AppendSKU(cartId string, sku string, parentId string, count float
     }
   }
   if !ok {
-    cartId = genUUID()
+    if cartId == "" {
+      cartId = genUUID()
+    }
     ci.ID = cartId
     ci.Items = make([]ItemsInfo, 0, 0)
   }
@@ -114,17 +116,19 @@ func (c *Cart) DeductSKU(cartId string, itemId string, count float32) *CartInfo 
           } else {
             remove(ci.Items, k)
           }
+          c.cache.Set(cartId, &ci)
           break
         }
       }
     }
-  }
-  if !ok {
-    cartId = genUUID()
+  } else {
+    if cartId == "" {
+      cartId = genUUID()
+    }
     ci.ID = cartId
     ci.Items = make([]ItemsInfo, 0, 0)
+    c.cache.Set(cartId, &ci)
   }
-  c.cache.Set(cartId, &ci)
   return &ci
 }
 
